@@ -11,5 +11,5 @@ app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
 })
 
 from api import api
-
+from .util import *
 app.register_blueprint(api, url_prefix='/api')

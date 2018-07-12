@@ -2,6 +2,7 @@ import math
 from app import app
 from flask import json
 from googlemaps import Client
+from app.util import deprecated
 
 
 class WalkingRoute:
@@ -42,10 +43,10 @@ class WalkingRoute:
 
     DEFAULT_DIRECTION = 'center'
 
-    def __init__(self, coordinates, distance, direction=DEFAULT_DIRECTION):
+    def __init__(self, coordinates, distance, direction=None):
         self.coordinates = coordinates
         self.distance = distance
-        self.direction = self.DIRECTIONS.get(direction.lower())
+        self.direction = self.DIRECTIONS.get(direction.lower() if direction else self.DEFAULT_DIRECTION)
         self.radius = self.distance / (2 * math.pi) * self.CORRELATION_FACTOR
 
         self.gmaps = Client(app.config['GOOGLE_MAPS_API_KEY'])  # geoCoding
@@ -112,6 +113,7 @@ class WalkingRoute:
     def __compute_overall_distance(points_info):
         return sum(float(point.distance) for point in points_info) / WalkingRoute.CAST_TO_KM
 
+    @deprecated('This method was deprecated')
     def __overall_to_miles(self, points):
         return WalkingRoute.__compute_overall_distance(points) * self.CAST_TO_MILES
 

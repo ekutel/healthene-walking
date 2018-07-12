@@ -19,5 +19,5 @@ def test():
 def walking():
     data = json.loads(request.data)
     route = WalkingRouteFromCurrentPosition([data.get('lat'), data.get('lng')], data.get('distance'),
-                                            data.get('direction'))
+                                            data.get('direction', None))
     return json.dumps(route.load_point_data(), cls=WalkingItemEncoder), 200, {'content-type': 'application/json'}

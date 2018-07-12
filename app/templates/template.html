@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        #map-canvas {
+            height: 100vh;;
+            weight: 100%
+        }
+    </style>
+</head>
+<body>
+<div id="map-canvas"sty></div>
+<script>
+    var directionsDisplay, directionsService;
+
+    function showMap() {
+        var path = [{{map}}];
+        var zoom = 13;
+        var center = {"lat": 53.931027, "lng": 27.598049};
+        var directionsService = new google.maps.DirectionsService;
+
+        var map1 = new google.maps.Map(document.getElementById("map-canvas"), {
+            zoom: zoom,
+            center: center,
+            mapTypeId: google.maps.MapTypeId.TERRAIN
+        });
+        var marker1 = new google.maps.Marker({
+                    position: new google.maps.LatLng(center),
+                    map: map1
+                });
+        google.maps.event.addListener(marker1, 'click', (function (marker) {
+                var infoWindow = new google.maps.InfoWindow({
+                    content: "START"
+                });
+                return function () {
+                    infoWindow.open(map1, marker);
+                }
+            })(marker1));
+        directionsDisplay = new google.maps.DirectionsRenderer({
+            draggable: false, //do not make the route draggable
+            map: map1,
+            suppressMarkers: true
+        });
+        var request = {
+            travelMode: google.maps.TravelMode.WALKING
+        };
+        for (i = 0; i < path.length; i++) {
+
+
+            if (i == 0) {
+                request.origin = new google.maps.LatLng(path[i]);
+            }
+            else if (i == path.length - 1) {
+                request.destination = new google.maps.LatLng(path[i]);
+            }
+            else {
+                if (!request.waypoints) request.waypoints = [];
+                request.waypoints.push({
+                    location: new google.maps.LatLng(path[i]),
+                    stopover: false
+                });
+            }
+
+
+        }
+        directionsService.route({
+            origin: request.origin,
+            destination: request.destination,
+            waypoints: request.waypoints,
+            travelMode: request.travelMode
+        }, function (response, status) {
+            if (status === 'OK') {
+                directionsDisplay.setDirections(response);
+            } else {
+                window.alert('Directions request failed due to ' + status);
+            }
+        });
+
+
+    }
+
+    // google.maps.event.addDomListener(window, "load", showMap);
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?libraries=geometry,places&ext=.js&key={{ context.key }}&callback=showMap">
+</script>
+</body>
+</html>

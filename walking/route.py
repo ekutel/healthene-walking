@@ -12,7 +12,7 @@ class WalkingRoute:
     DEFAULT_DIRECTION_MODE = "walking"
     DEFAULT_DIRECTION_AVOID = ["highways", "tolls", "ferries"]
 
-    CAST_TO_MILES = 0.621371192  #
+    CAST_TO_MILES = app.config['CAST_TO_MILES']
     CAST_TO_KM = 1000  #
 
     CORRELATION_FACTOR = 0.5
@@ -149,19 +149,27 @@ class WalkingRouteFromCurrentPosition(WalkingRoute):
 # Data object classes
 
 class WalkingRouteItem:
-    def __init__(self, point=None, distance=None, current_position=None):
+    CAST_TO_MILES = app.config['CAST_TO_MILES']
+
+    def __init__(self, point=None, distance_km=None, current_position=None):
         """
         Data object for route information
-        :param point:
-        :param distance:
-        :param current_position:
+        :param point: Point object
+        :param distance_km: Overall distance (km)
+        :output distance_miles: Overall distance (miles)
+        :param current_position: Received current position
         """
         self.points = point
-        self.distance = distance
+        self.distance_km = distance_km
+        self.distance_miles = self._distance_miles
         self.current_position = current_position
 
     def __iter__(self):
         return self
+
+    @property
+    def _distance_miles(self):
+        return self.distance_km * self.CAST_TO_MILES
 
 
 class Point:
@@ -187,8 +195,9 @@ class Point:
 
 class WalkingItemEncoder(json.JSONEncoder):
     def default(self, obj):
-        """Serialize Walking objects to json
-               """
+        """
+        Serialize Walking objects to json
+        """
         if isinstance(obj, WalkingRouteItem):
             return obj.__dict__
         if isinstance(obj, Point):

@@ -12,6 +12,7 @@ class Config(object):
     SECRET_KEY = os.getenv('SECRET_KEY', 'SECRET_KEY')
     APPLICATION_ROOT = '/app'
     GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', None)
+    CAST_TO_MILES = 0.621371192
 
 
 class ProductionConfig(Config):

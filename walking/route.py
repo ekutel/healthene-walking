@@ -60,7 +60,10 @@ class WalkingRoute:
     """
 
     def load_point_data(self):
-        points = self.__find_lap_points()
+        coordinates = self.coordinates
+        if hasattr(self, 'center_coordinates'):
+            coordinates = self.center_coordinates
+        points = self.__find_lap_points(coordinates)
         points_info = []
         for i, point in enumerate(points):
             if WalkingRoute.__is_last(points, point):
@@ -76,19 +79,19 @@ class WalkingRoute:
              self.load_point_data().points])
 
     @staticmethod
-    def __get_way_point(coordinates, shift, dist):
-        dist = dist / WalkingRoute.EARTH_RADIUS_KM
+    def _get_way_point(coordinates, shift, radius):
+        radius = radius / WalkingRoute.EARTH_RADIUS_KM
         shift = math.radians(shift)
 
         lat = math.radians(coordinates[0])  # get lat
         lng = math.radians(coordinates[1])  # get lng
 
         lat_shift = math.asin(
-            math.sin(lat) * math.cos(dist) + math.cos(lat) * math.sin(dist) * math.cos(shift)
+            math.sin(lat) * math.cos(radius) + math.cos(lat) * math.sin(radius) * math.cos(shift)
         )
 
         lng_shift = lng + math.atan2(
-            math.sin(shift) * math.sin(dist) * math.cos(lat), math.cos(dist) - math.sin(lat) * math.sin(lat_shift)
+            math.sin(shift) * math.sin(radius) * math.cos(lat), math.cos(radius) - math.sin(lat) * math.sin(lat_shift)
         )
         if not isinstance(lat_shift, float) \
                 or not isinstance(lng_shift, float):
@@ -96,11 +99,11 @@ class WalkingRoute:
 
         return [math.degrees(lat_shift), math.degrees(lng_shift)]
 
-    def __find_lap_points(self):
+    def __find_lap_points(self, coordinates):
         points = []
         shift = self.SHIFT_START
         while shift <= self.SHIFT_MAX:
-            new_way_point = self.__get_way_point(self.coordinates, shift, self.radius)
+            new_way_point = self._get_way_point(coordinates, shift, self.radius)
             points.append(new_way_point)
             shift += self.SHIFT_STEP
         return points
@@ -135,19 +138,12 @@ class WalkingRoute:
 
 
 class WalkingRouteFromCurrentPosition(WalkingRoute):
-
-    def __find_lap_points(self):
-        lap_center = self.__get_lap_center()
-        points = []
-        shift = self.SHIFT_START
-        while shift <= self.SHIFT_MAX:
-            new_way_point = self.__get_way_point(lap_center, shift, self.radius)
-            points.append(new_way_point)
-            shift += self.SHIFT_STEP
-        return points
+    def __init__(self, coordinates, distance, direction):
+        super(WalkingRouteFromCurrentPosition, self).__init__(coordinates, distance, direction)
+        self.center_coordinates = self.__get_lap_center()  # complete new center for lap
 
     def __get_lap_center(self):
-        return self.__get_way_point(self.coordinates, self.direction, self.radius)
+        return self._get_way_point(self.coordinates, self.direction, self.radius)
 
 
 # Data object classes

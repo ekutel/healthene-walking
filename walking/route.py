@@ -52,14 +52,6 @@ class WalkingRoute:
         self.gmaps = Client(app.config['GOOGLE_MAPS_API_KEY'])  # geoCoding
         self.dirs = Client(app.config['GOOGLE_MAPS_API_KEY'])  # directions
 
-    # https://www.movable-type.co.uk/scripts/latlong.html - see here for more details
-    """
-    Formula: 
-        φ2 = asin( sin φ1 ⋅ cos δ + cos φ1 ⋅ sin δ ⋅ cos θ ) 
-        λ2 = λ1 + atan2( sin θ ⋅ sin δ ⋅ cos φ1, cos δ − sin φ1 ⋅ sin φ2 ) 
-            where φ is latitude, λ is longitude, θ is the bearing (clockwise from north), δ is the angular distance d/R; d being the distance travelled, R the earth’s radius
-    """
-
     def load_point_data(self):
         coordinates = self.coordinates
         if hasattr(self, 'center_coordinates'):
@@ -81,6 +73,13 @@ class WalkingRoute:
 
     @staticmethod
     def _get_way_point(coordinates, shift, radius):
+        # https://www.movable-type.co.uk/scripts/latlong.html - see here for more details
+        """
+        Formula:
+            φ2 = asin( sin φ1 ⋅ cos δ + cos φ1 ⋅ sin δ ⋅ cos θ )
+            λ2 = λ1 + atan2( sin θ ⋅ sin δ ⋅ cos φ1, cos δ − sin φ1 ⋅ sin φ2 )
+                where φ is latitude, λ is longitude, θ is the bearing (clockwise from north), δ is the angular distance d/R; d being the distance travelled, R the earth’s radius
+        """
         radius = radius / WalkingRoute.EARTH_RADIUS_KM
         shift = math.radians(shift)
 

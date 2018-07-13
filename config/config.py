@@ -13,6 +13,9 @@ class Config(object):
     APPLICATION_ROOT = '/app'
     GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', None)
     CAST_TO_MILES = 0.621371192
+    BASIC_AUTH_USERNAME = os.getenv('BASIC_AUTH_USERNAME', "whitesalt")
+    BASIC_AUTH_PASSWORD = os.getenv('BASIC_AUTH_PASSWORD', "123qazWSX")
+    BASIC_AUTH_FORCE = True
 
 
 class ProductionConfig(Config):

@@ -8,7 +8,7 @@ api = Blueprint('api', __name__)
 
 @api.route('/test')
 def test():
-    route = WalkingRouteFromCurrentPosition([53.931027, 27.598049], 2, 'northwest')
+    route = WalkingRouteFromCurrentPosition([53.9526006, 27.4542071], 50, 'south')
     context = {
         "key": app.config['GOOGLE_MAPS_API_KEY'],
     }

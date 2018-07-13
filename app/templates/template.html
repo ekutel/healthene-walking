@@ -10,14 +10,14 @@
     </style>
 </head>
 <body>
-<div id="map-canvas"sty></div>
+<div id="map-canvas"></div>
 <script>
     var directionsDisplay, directionsService;
 
     function showMap() {
         var path = [{{map}}];
         var zoom = 13;
-        var center = {"lat": 53.931027, "lng": 27.598049};
+        var center = {"lat": 53.9526006, "lng": 27.4542071};
         var directionsService = new google.maps.DirectionsService;
 
         var map1 = new google.maps.Map(document.getElementById("map-canvas"), {

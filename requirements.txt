@@ -3,3 +3,5 @@ flask
 requests
 flask-security
 googlemaps==2.4.3
+Flask-BasicAuth
+flask-cors

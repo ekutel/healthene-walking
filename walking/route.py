@@ -16,7 +16,7 @@ class WalkingRoute:
     CAST_TO_MILES = app.config['CAST_TO_MILES']
     CAST_TO_KM = 1000  #
 
-    CORRELATION_FACTOR = 0.5
+    CORRELATION_FACTOR = 1
     EARTH_RADIUS_KM = 6371
 
     CENTER = 360

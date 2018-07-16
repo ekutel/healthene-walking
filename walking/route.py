@@ -149,7 +149,7 @@ class WalkingRoute:
             street=route_info[0]['legs'][0]['start_address'],
             distance=route_info[0]['legs'][0]['distance']['value'],
         )
-        return list(dp)
+        return [dp]
 
     @staticmethod
     def _go_round_points(way_points):

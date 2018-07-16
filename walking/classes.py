@@ -27,7 +27,7 @@ class WalkingRouteItem:
         return self.distance_km * self.CAST_TO_MILES
 
 
-class Point:
+class Point(object):
     def __init__(self, start_location=None, address=None, distance=None, **kwargs):
         """
         Data object for route point
@@ -36,10 +36,10 @@ class Point:
         :param street:
         :param distance:
         """
-        self.lat = start_location.get('lat')
-        self.lng = start_location.get('lng')
-        self.street = address
-        self.distance = distance.get('value', 0)
+        self.lat = kwargs.get('lat') if 'lat' in kwargs else start_location.get('lat')
+        self.lng = kwargs.get('lng') if 'lng' in kwargs else start_location.get('lng')
+        self.street = kwargs.get('street') if 'street' in kwargs else address
+        self.distance = distance.get('value', 0) if isinstance(distance, dict) else distance
 
     def __repr__(self):
         return 'Coordinates: [{lat}, {lng}], Address: {street}, Distance: {distance}'.format(lat=self.lat, lng=self.lng,
@@ -47,7 +47,7 @@ class Point:
                                                                                              distance=self.distance)
 
     def __iter__(self):
-        return self.distance
+        return self
 
 
 class WalkingItemEncoder(json.JSONEncoder):

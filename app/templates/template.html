@@ -29,55 +29,14 @@
                     position: new google.maps.LatLng(center),
                     map: map1
                 });
-        google.maps.event.addListener(marker1, 'click', (function (marker) {
-                var infoWindow = new google.maps.InfoWindow({
-                    content: "START"
-                });
-                return function () {
-                    infoWindow.open(map1, marker);
-                }
-            })(marker1));
-        directionsDisplay = new google.maps.DirectionsRenderer({
-            draggable: false, //do not make the route draggable
-            map: map1,
-            suppressMarkers: true
-        });
-        var request = {
-            travelMode: google.maps.TravelMode.WALKING
-        };
-        for (i = 0; i < path.length; i++) {
-
-
-            if (i == 0) {
-                request.origin = new google.maps.LatLng(path[i]);
-            }
-            else if (i == path.length - 1) {
-                request.destination = new google.maps.LatLng(path[i]);
-            }
-            else {
-                if (!request.waypoints) request.waypoints = [];
-                request.waypoints.push({
-                    location: new google.maps.LatLng(path[i]),
-                    stopover: false
-                });
-            }
-
-
-        }
-        directionsService.route({
-            origin: request.origin,
-            destination: request.destination,
-            waypoints: request.waypoints,
-            travelMode: request.travelMode
-        }, function (response, status) {
-            if (status === 'OK') {
-                directionsDisplay.setDirections(response);
-            } else {
-                window.alert('Directions request failed due to ' + status);
-            }
-        });
-
-
+        var activity_route = new google.maps.Polyline({
+         path: path,
+         geodesic: false,
+         strokeColor: '#550FFF',
+         strokeOpacity: 1.0,
+         strokeWeight: 4,
+         map: map1
+     });
     }
 
     // google.maps.event.addDomListener(window, "load", showMap);

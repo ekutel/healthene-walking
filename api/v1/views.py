@@ -1,5 +1,6 @@
 from app import app
-from walking.route import WalkingRoute, WalkingItemEncoder, WalkingRouteFromCurrentPosition
+from walking.route import WalkingRoute, WalkingRouteFromCurrentPosition
+from walking.classes import WalkingItemEncoder
 from flask import render_template, json, request
 from flask import Blueprint
 
@@ -8,7 +9,7 @@ api = Blueprint('api', __name__)
 
 @api.route('/test')
 def test():
-    route = WalkingRouteFromCurrentPosition([53.9526006, 27.4542071], 50, 'south')
+    route = WalkingRouteFromCurrentPosition([53.933048, 27.65546], 20, 'west')
     context = {
         "key": app.config['GOOGLE_MAPS_API_KEY'],
     }

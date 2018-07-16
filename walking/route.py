@@ -1,8 +1,9 @@
 import math
 from app import app
-from flask import json
 from googlemaps import Client
 from app.util import deprecated
+
+from .classes import Point, WalkingRouteItem
 
 
 class WalkingRoute:
@@ -52,6 +53,10 @@ class WalkingRoute:
         self.gmaps = Client(app.config['GOOGLE_MAPS_API_KEY'])  # geoCoding
         self.dirs = Client(app.config['GOOGLE_MAPS_API_KEY'])  # directions
 
+    @staticmethod
+    def flatten(items):
+        return [value for deep_list in items for value in deep_list]
+
     def load_point_data(self):
         coordinates = self.coordinates
         if hasattr(self, 'center_coordinates'):
@@ -63,8 +68,8 @@ class WalkingRoute:
                 points_info.append(self.__compute_direction(point, points[0]))
             else:
                 points_info.append(self.__compute_direction(point, points[i + 1]))
-
-        return WalkingRouteItem(points_info, WalkingRoute.__compute_overall_distance(points_info), self.coordinates)
+        flattened = WalkingRoute.flatten(points_info)
+        return WalkingRouteItem(flattened, WalkingRoute.__compute_overall_distance(flattened), self.coordinates)
 
     def load_for_map(self):
         return ",\n".join(
@@ -129,13 +134,17 @@ class WalkingRoute:
         """
         route_info = self.dirs.directions(start, end, mode=self.DEFAULT_DIRECTION_MODE,
                                           avoid=self.DEFAULT_DIRECTION_AVOID)
-        dp = Point(
-            lat=start[0],
-            lng=start[1],
-            street=route_info[0]['legs'][0]['start_address'],
-            distance=route_info[0]['legs'][0]['distance']['value'],
-        )
-        return dp
+
+        return WalkingRoute.__go_round_points(route_info)
+
+    @staticmethod
+    def __go_round_points(way_points):
+        points = []
+        for way_point in way_points:
+            for steps in way_point['legs'][0]['steps']:
+                dp = Point(address=way_point['legs'][0]['start_address'], **steps)
+                points.append(dp)
+        return points
 
 
 class WalkingRouteFromCurrentPosition(WalkingRoute):
@@ -145,62 +154,3 @@ class WalkingRouteFromCurrentPosition(WalkingRoute):
 
     def __get_lap_center(self):
         return self._get_way_point(self.coordinates, self.direction, self.radius)
-
-
-# Data object classes
-
-class WalkingRouteItem:
-    CAST_TO_MILES = app.config['CAST_TO_MILES']
-
-    def __init__(self, point=None, distance_km=None, current_position=None):
-        """
-        Data object for route information
-        :param point: Point object
-        :param distance_km: Overall distance (km)
-        :output distance_miles: Overall distance (miles)
-        :param current_position: Received current position
-        """
-        self.points = point
-        self.distance_km = distance_km
-        self.distance_miles = self._distance_miles
-        self.current_position = current_position
-
-    def __iter__(self):
-        return self
-
-    @property
-    def _distance_miles(self):
-        return self.distance_km * self.CAST_TO_MILES
-
-
-class Point:
-    def __init__(self, lat=None, lng=None, street=None, distance=None):
-        """
-        Data object for route point
-        :param lat:
-        :param lng:
-        :param street:
-        :param distance:
-        """
-        self.lat = lat
-        self.lng = lng
-        self.street = street
-        self.distance = distance
-
-    def __repr__(self):
-        return '{} {} {} {}'.format(self.lat, self.lng, self.street, self.distance)
-
-    def __iter__(self):
-        return self.distance
-
-
-class WalkingItemEncoder(json.JSONEncoder):
-    def default(self, obj):
-        """
-        Serialize Walking objects to json
-        """
-        if isinstance(obj, WalkingRouteItem):
-            return obj.__dict__
-        if isinstance(obj, Point):
-            return obj.__dict__
-        return json.JSONEncoder.default(self, obj)

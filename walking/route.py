@@ -1,9 +1,14 @@
 import math
+
+import logging
 from app import app
 from googlemaps import Client
 from app.util import deprecated
 
+# custom imports
 from .classes import Point, WalkingRouteItem
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('[WalkingRoute]')
 
 
 class WalkingRoute:
@@ -52,6 +57,7 @@ class WalkingRoute:
 
         self.gmaps = Client(app.config['GOOGLE_MAPS_API_KEY'])  # geoCoding
         self.dirs = Client(app.config['GOOGLE_MAPS_API_KEY'])  # directions
+        logger.debug(' Initialize request with coordinates {} '.format(self.coordinates))
 
     @staticmethod
     def flatten(items):
@@ -65,9 +71,9 @@ class WalkingRoute:
         points_info = []
         for i, point in enumerate(points):
             if WalkingRoute.__is_last(points, point):
-                points_info.append(self.__compute_direction(point, points[0]))
+                points_info.append(self._compute_direction(point, points[0]))
             else:
-                points_info.append(self.__compute_direction(point, points[i + 1]))
+                points_info.append(self._compute_direction(point, points[i + 1]))
         flattened = WalkingRoute.flatten(points_info)
         return WalkingRouteItem(flattened, WalkingRoute.__compute_overall_distance(flattened), self.coordinates)
 
@@ -105,6 +111,7 @@ class WalkingRoute:
         return [math.degrees(lat_shift), math.degrees(lng_shift)]
 
     def __find_lap_points(self, coordinates):
+        logger.debug(' Find base points for coordinates {} '.format(self.coordinates))
         points = []
         shift = self.SHIFT_START
         while shift <= self.SHIFT_MAX:
@@ -125,7 +132,8 @@ class WalkingRoute:
     def __is_last(existing_list, current):
         return existing_list[-1] == current
 
-    def __compute_direction(self, start, end):
+    @deprecated("Use __compute_direction from child class")
+    def _compute_direction(self, start, end):
         """
         Load information from Google Maps Directions for each route point
         :param start:
@@ -135,15 +143,22 @@ class WalkingRoute:
         route_info = self.dirs.directions(start, end, mode=self.DEFAULT_DIRECTION_MODE,
                                           avoid=self.DEFAULT_DIRECTION_AVOID)
 
-        return WalkingRoute.__go_round_points(route_info)
+        dp = Point(
+            lat=start[0],
+            lng=start[1],
+            street=route_info[0]['legs'][0]['start_address'],
+            distance=route_info[0]['legs'][0]['distance']['value'],
+        )
+        return list(dp)
 
     @staticmethod
-    def __go_round_points(way_points):
+    def _go_round_points(way_points):
         points = []
         for way_point in way_points:
             for steps in way_point['legs'][0]['steps']:
                 dp = Point(address=way_point['legs'][0]['start_address'], **steps)
                 points.append(dp)
+        logger.debug(' Found waypoints: {} '.format(points))
         return points
 
 
@@ -154,3 +169,16 @@ class WalkingRouteFromCurrentPosition(WalkingRoute):
 
     def __get_lap_center(self):
         return self._get_way_point(self.coordinates, self.direction, self.radius)
+
+    def _compute_direction(self, start, end):
+        """
+        Load information from Google Maps Directions for each route point
+        :param start:
+        :param end:
+        :return:
+        """
+        logger.debug(' Find waypoints for {} '.format([start, end]))
+        route_info = self.dirs.directions(start, end, mode=self.DEFAULT_DIRECTION_MODE,
+                                          avoid=self.DEFAULT_DIRECTION_AVOID)
+
+        return WalkingRoute._go_round_points(route_info)

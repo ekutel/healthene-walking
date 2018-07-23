@@ -11,7 +11,7 @@ class Config(object):
     CSRF_ENABLED = True
     SECRET_KEY = os.getenv('SECRET_KEY', 'SECRET_KEY')
     APPLICATION_ROOT = '/app'
-    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', None)
+    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyAsgVkoq04gXoX1mx29_lUUo9EV98rngEs')
     CAST_TO_MILES = 0.621371192
     BASIC_AUTH_USERNAME = os.getenv('BASIC_AUTH_USERNAME', "whitesalt")
     BASIC_AUTH_PASSWORD = os.getenv('BASIC_AUTH_PASSWORD', "123qazWSX")

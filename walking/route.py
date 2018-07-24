@@ -175,7 +175,7 @@ class WalkingRouteFromCurrentPosition(WalkingRoute):
     def __init__(self, coordinates, distance, direction, count_routes):
         super(WalkingRouteFromCurrentPosition, self).__init__(coordinates, distance, direction)
         self.center_coordinates = self.__get_lap_center()  # complete new center for lap
-        self.count_routes = count_routes
+        self.count_routes = count_routes if count_routes <= len(self.DIRECTIONS) else len(self.DIRECTIONS) - 1
         self.random_directions = self._shuffle_directions()
 
     def load_point_data(self):

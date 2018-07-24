@@ -1,5 +1,7 @@
 import math
+from itertools import islice
 
+import random
 import logging
 from app import app
 from googlemaps import Client
@@ -7,6 +9,7 @@ from app.util import deprecated
 
 # custom imports
 from .classes import Point, WalkingRouteItem
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('[WalkingRoute]')
 
@@ -52,12 +55,18 @@ class WalkingRoute:
     def __init__(self, coordinates, distance, direction=None):
         self.coordinates = coordinates
         self.distance = distance
-        self.direction = self.DIRECTIONS.get(direction.lower() if direction else self.DEFAULT_DIRECTION)
+        self.direction = self.get_direction(direction)
+        self.direction_degrees = self.DIRECTIONS.get(direction.lower() if direction else self.DEFAULT_DIRECTION)
         self.radius = self.distance / (2 * math.pi) * self.CORRELATION_FACTOR
 
         self.gmaps = Client(app.config['GOOGLE_MAPS_API_KEY'])  # geoCoding
         self.dirs = Client(app.config['GOOGLE_MAPS_API_KEY'])  # directions
         logger.debug(' Initialize request with coordinates {} '.format(self.coordinates))
+
+    def get_direction(self, direction):
+        direction = direction if direction else self.DEFAULT_DIRECTION
+        direction_degree = self.DIRECTIONS.get(direction)
+        return list(zip((direction,), (direction_degree,)))
 
     @staticmethod
     def flatten(items):
@@ -163,12 +172,23 @@ class WalkingRoute:
 
 
 class WalkingRouteFromCurrentPosition(WalkingRoute):
-    def __init__(self, coordinates, distance, direction):
+    def __init__(self, coordinates, distance, direction, count_routes):
         super(WalkingRouteFromCurrentPosition, self).__init__(coordinates, distance, direction)
         self.center_coordinates = self.__get_lap_center()  # complete new center for lap
+        self.count_routes = count_routes
+        self.random_directions = self._shuffle_directions()
 
-    def __get_lap_center(self):
-        return self._get_way_point(self.coordinates, self.direction, self.radius)
+    def load_point_data(self):
+        routes = list()
+        if hasattr(self, 'random_directions'):
+            for direction in self.random_directions:
+                self.center_coordinates = self.__get_lap_center(direction[-1])
+                routes.append(super().load_point_data())
+        return routes
+
+    def __get_lap_center(self, direction=None):
+        return self._get_way_point(self.coordinates, direction if direction is not None else self.direction_degrees,
+                                   self.radius)
 
     def _compute_direction(self, start, end):
         """
@@ -182,3 +202,10 @@ class WalkingRouteFromCurrentPosition(WalkingRoute):
                                           avoid=self.DEFAULT_DIRECTION_AVOID)
 
         return WalkingRoute._go_round_points(route_info)
+
+    def _shuffle_directions(self):
+        if self.count_routes > 1:
+            directions = list(self.DIRECTIONS.items())
+            random.shuffle(directions)
+            return islice(directions, self.count_routes)
+        return list(self.direction)

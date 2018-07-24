@@ -16,6 +16,7 @@ class Config(object):
     BASIC_AUTH_USERNAME = os.getenv('BASIC_AUTH_USERNAME', "whitesalt")
     BASIC_AUTH_PASSWORD = os.getenv('BASIC_AUTH_PASSWORD', "123qazWSX")
     BASIC_AUTH_FORCE = True
+    DEFAULT_COUNT_ROUTES_PER_REQUEST = 3
 
 
 class ProductionConfig(Config):

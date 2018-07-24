@@ -9,7 +9,7 @@ api = Blueprint('api', __name__)
 
 @api.route('/test')
 def test():
-    route = WalkingRouteFromCurrentPosition([32.8205862,-96.8719689], 20, 'west')
+    route = WalkingRouteFromCurrentPosition([32.8205862, -96.8719689], 20, 'west')
     context = {
         "key": app.config['GOOGLE_MAPS_API_KEY'],
     }
@@ -19,6 +19,8 @@ def test():
 @api.route('/routes', methods=["POST"])
 def walking():
     data = json.loads(request.data)
-    route = WalkingRouteFromCurrentPosition([data.get('lat'), data.get('lng')], data.get('distance'),
-                                            data.get('direction', None))
+    route = WalkingRouteFromCurrentPosition([data.get('lat'), data.get('lng')],
+                                            data.get('distance'),
+                                            data.get('direction', None),
+                                            data.get('count_routes', app.config['DEFAULT_COUNT_ROUTES_PER_REQUEST']))
     return json.dumps(route.load_point_data(), cls=WalkingItemEncoder), 200, {'content-type': 'application/json'}

@@ -184,7 +184,7 @@ class WalkingRouteFromCurrentPosition(WalkingRoute):
             for direction in self.random_directions:
                 self.center_coordinates = self.__get_lap_center(direction[-1])
                 routes.append(super().load_point_data())
-        return routes
+        return {'routes': routes}
 
     def __get_lap_center(self, direction=None):
         return self._get_way_point(self.coordinates, direction if direction is not None else self.direction_degrees,
